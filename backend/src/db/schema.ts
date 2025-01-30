@@ -1,0 +1,89 @@
+import { pgTable, integer, varchar, timestamp, boolean, text, unique, PgTable } from 'drizzle-orm/pg-core';
+
+export const users = pgTable(
+  'users',
+  {
+    id: integer('id').primaryKey(),
+    username: varchar('username', { length: 50 }).notNull().unique(),
+    email: varchar('email', { length: 100 }).notNull().unique(),
+    passwordHash: varchar('password_hash', { length: 255 }).notNull(),
+    createdAt: timestamp('created_at').defaultNow(),
+  }
+);
+
+export const friendRequests = pgTable(
+  'friend_requests',
+  {
+    id: integer('id').primaryKey(),
+    senderId: integer('sender_id').notNull().references(() => users.id),
+    receiverId: integer('receiver_id').notNull().references(() => users.id),
+    status: varchar('status', { length: 20 }).notNull().$type<'pending' | 'accepted' | 'rejected'>(),
+    createdAt: timestamp('created_at').defaultNow(),
+  },
+  (table) => {
+    return {
+      senderReceiverUnique: unique('sender_receiver_idx').on(table.senderId, table.receiverId),
+    };
+  }
+);
+
+export const blockedUsers = pgTable(
+  'blocked_users',
+  {
+    id: integer('id').primaryKey(),
+    blockerId: integer('blocker_id').notNull().references(() => users.id),
+    blockedId: integer('blocked_id').notNull().references(() => users.id),
+    createdAt: timestamp('created_at').defaultNow(),
+  },
+  (table) => {
+    return {
+      blockerBlockedUnique: unique('blocker_blocked_idx').on(table.blockerId, table.blockedId),
+    };
+  }
+);
+
+export const conversations = pgTable(
+  'conversations',
+  {
+    id: integer('id').primaryKey(),
+    name: varchar('name', { length: 100 }),
+    type: varchar('type', { length: 10 }).notNull().$type<'private' | 'group'>(),
+    photo: varchar('photo', { length: 255 }),
+    createdAt: timestamp('created_at').defaultNow(),
+  }
+);
+
+export const conversationMembers = pgTable(
+  'conversation_members',
+  {
+    id: integer('id').primaryKey(),
+    conversationId: integer('conversation_id').notNull().references(() => conversations.id),
+    userId: integer('user_id').notNull().references(() => users.id),
+    isAdmin: boolean('is_admin').default(false),
+    joinedAt: timestamp('joined_at').defaultNow(),
+  },
+  (table) => {
+    return {
+      conversationUserUnique: unique('conversation_user_idx').on(table.conversationId, table.userId),
+    };
+  }
+);
+
+export const messages = pgTable(
+  'messages',
+  {
+    id: integer('id').primaryKey(),
+    conversationId: integer('conversation_id').notNull().references(() => conversations.id),
+    senderId: integer('sender_id').notNull().references(() => users.id),
+    contentType: varchar('content_type', { length: 10 }).notNull().$type<'text' | 'file' | 'image' | 'voice'>(),
+    content: text('content'),
+    filePath: varchar('file_path', { length: 255 }),
+    fileName: varchar('file_name', { length: 255 }),
+    fileSize: integer('file_size'),
+    duration: integer('duration'),
+    createdAt: timestamp('created_at').defaultNow(),
+  }
+);
+export const refreshTokens = pgTable('refresh_tokens', {
+    token: varchar('token', { length: 255 }).primaryKey(),
+  });
