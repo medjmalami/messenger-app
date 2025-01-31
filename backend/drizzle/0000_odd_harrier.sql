@@ -1,22 +1,22 @@
 CREATE TABLE "blocked_users" (
-	"id" integer PRIMARY KEY NOT NULL,
-	"blocker_id" integer NOT NULL,
-	"blocked_id" integer NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"blocker_id" uuid NOT NULL,
+	"blocked_id" uuid NOT NULL,
 	"created_at" timestamp DEFAULT now(),
 	CONSTRAINT "blocker_blocked_idx" UNIQUE("blocker_id","blocked_id")
 );
 --> statement-breakpoint
 CREATE TABLE "conversation_members" (
-	"id" integer PRIMARY KEY NOT NULL,
-	"conversation_id" integer NOT NULL,
-	"user_id" integer NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"conversation_id" uuid NOT NULL,
+	"user_id" uuid NOT NULL,
 	"is_admin" boolean DEFAULT false,
 	"joined_at" timestamp DEFAULT now(),
 	CONSTRAINT "conversation_user_idx" UNIQUE("conversation_id","user_id")
 );
 --> statement-breakpoint
 CREATE TABLE "conversations" (
-	"id" integer PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" varchar(100),
 	"type" varchar(10) NOT NULL,
 	"photo" varchar(255),
@@ -24,18 +24,18 @@ CREATE TABLE "conversations" (
 );
 --> statement-breakpoint
 CREATE TABLE "friend_requests" (
-	"id" integer PRIMARY KEY NOT NULL,
-	"sender_id" integer NOT NULL,
-	"receiver_id" integer NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"sender_id" uuid NOT NULL,
+	"receiver_id" uuid NOT NULL,
 	"status" varchar(20) NOT NULL,
 	"created_at" timestamp DEFAULT now(),
 	CONSTRAINT "sender_receiver_idx" UNIQUE("sender_id","receiver_id")
 );
 --> statement-breakpoint
 CREATE TABLE "messages" (
-	"id" integer PRIMARY KEY NOT NULL,
-	"conversation_id" integer NOT NULL,
-	"sender_id" integer NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"conversation_id" uuid NOT NULL,
+	"sender_id" uuid NOT NULL,
 	"content_type" varchar(10) NOT NULL,
 	"content" text,
 	"file_path" varchar(255),
@@ -45,8 +45,12 @@ CREATE TABLE "messages" (
 	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
+CREATE TABLE "refresh_tokens" (
+	"token" varchar(255) PRIMARY KEY NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "users" (
-	"id" integer PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"username" varchar(50) NOT NULL,
 	"email" varchar(100) NOT NULL,
 	"password_hash" varchar(255) NOT NULL,
