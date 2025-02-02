@@ -3,12 +3,12 @@ import { users } from "../../db/schema";
 import { db } from "../../db/index";
 import jwt from "jsonwebtoken";
 import { SignupReq } from "../../../../shared/signup.types"
-import { Errors } from "../../../../shared/signup.types";
 import { sql } from "drizzle-orm";
 import { refreshTokens } from "../../db/schema";
 import { hashPassword } from "../../utils/hash_password";
 import { SignupRes } from "../../../../shared/signup.types";
-import { signupValidator } from "../../utils/signup.validator";
+import { SignupReqSchema } from "../../../../shared/signup.types";
+
 
 // Helper function for error handling
 const handleError = (res: Response, status: number, message: string) => {
@@ -29,17 +29,19 @@ const signup = async (req: Request, res: Response) => {
   
   try {
     // Validate required fields
-    const errors : Errors = signupValidator(r);
-    if (Object.keys(errors).length > 0) {
-       handleError(res, 400, "Invalid request body");
-       return
+    const validated = SignupReqSchema.safeParse(r);
+    if (!validated.success) {
+      handleError(res, 400, "Invalid request body");
+      return
     }
+
+
+
 
     // Check if user already exists
     let [user] = await db.select().from(users).where(sql`username = ${username} OR email = ${email}`).limit(1);
     if (user) {
        handleError(res, 409, "Username or email already exists");
-       return
     }
 
 
@@ -90,11 +92,9 @@ const signup = async (req: Request, res: Response) => {
     // Handle unique constraint violations
     if (error.code === '23505') {
       handleError(res, 409, "Username or email already exists");
-      return
     }
 
     handleError(res, 500, "Server error");
-    return
   }
 };
 

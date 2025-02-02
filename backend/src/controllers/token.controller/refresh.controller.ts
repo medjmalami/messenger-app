@@ -4,13 +4,12 @@ import { db } from "../../db/index";
 import jwt from "jsonwebtoken";
 import { sql } from "drizzle-orm";
 import { RefreshReq } from "../../../../shared/refresh.types"
-import { Errors } from "../../../../shared/refresh.types";
 import { RefreshRes } from "../../../../shared/refresh.types";
-import refreshValidator from "../../utils/refresh.validator";
+import { RefreshReqSchema } from "../../../../shared/refresh.types";
 
 // Helper function for error handling
 const handleError = (res: Response, status: number, message: string) => {
-  return res.status(status).json({ success: false, error: message });
+   res.status(status).json({ success: false, error: message });
 };
 
 
@@ -25,20 +24,22 @@ export const refresh = async (req: Request, res: Response) => {
   try {
 
     // Validate required fields
-    const errors : Errors = refreshValidator(r);
-    if (Object.keys(errors).length > 0) {
+    const validated = RefreshReqSchema.safeParse(r);
+    if (!validated.success) {
       return handleError(res, 400, "Invalid request body");
     }
+
+
     // Check if refresh token exists
     let [token] = await db.select().from(refreshTokens).where(sql`token = ${refreshToken}`).limit(1);
     if (!token) {
-      return handleError(res, 401, "Invalid refresh token");
+       handleError(res, 401, "Invalid refresh token");
     }
 
     // Check if refresh token is valid
     const refreshTokenValid = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!);
     if (!refreshTokenValid) {
-      return handleError(res, 401, "Invalid refresh token");
+       handleError(res, 401, "Invalid refresh token");
     }
 
     let [user]= await db.select().from(users).where(sql`email = ${email}`).limit(1);
@@ -68,14 +69,14 @@ export const refresh = async (req: Request, res: Response) => {
       }
     }
 
-    return res.status(200).json(re);
+   res.status(200).json(re);
 
   } catch (error: any) {
     // Handle unique constraint violations
     if (error.code === '23505') {
-      return handleError(res, 409, "Username or email already exists");
+      handleError(res, 409, "Username or email already exists");
     }
-    return handleError(res, 500, "Server error");
+      handleError(res, 500, "Server error");
   }
 };
 
