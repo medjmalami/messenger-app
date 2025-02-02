@@ -3,6 +3,9 @@ import { refreshTokens, users } from "../../db/schema";
 import { db } from "../../db/index";
 import jwt from "jsonwebtoken";
 import { sql } from "drizzle-orm";
+import { RefreshReq } from "../../../../shared/refresh.types"
+import { Errors } from "../../../../shared/refresh.types";
+import { RefreshRes } from "../../../../shared/refresh.types";
 import refreshValidator from "../../utils/refresh.validator";
 
 // Helper function for error handling
