@@ -14,7 +14,12 @@ const handleError = (res: Response, status: number, message: string) => {
 
 
 export const refresh = async (req: Request, res: Response) => {
-  const { refreshToken , email } = req.body;
+  const {  email } = req.body;
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return handleError(res, 401, "Missing Authorization header");
+  }
+  const refreshToken = authHeader.split(" ")[1];
 
   const r : RefreshReq = {
     refreshToken,
@@ -26,6 +31,7 @@ export const refresh = async (req: Request, res: Response) => {
     // Validate required fields
     const validated = RefreshReqSchema.safeParse(r);
     if (!validated.success) {
+      console.log(validated.error);
       return handleError(res, 400, "Invalid request body");
     }
 
