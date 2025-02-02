@@ -1,10 +1,11 @@
-const {validator }= require('validator');
 import { SignupReq } from "../../../shared/signup.types";
 import { Errors } from "../../../shared/signup.types";
-const signupValidator = (data : SignupReq) => {
+import { validator } from "validator";
+export const signupValidator = (data : SignupReq) => {
 
 
     const { username, email, password } = data;
+
     let errors : Errors = {};
     if (validator.isEmpty(username)) {
         errors.username = "Username is required";
@@ -26,4 +27,3 @@ const signupValidator = (data : SignupReq) => {
     
 }
 
-export default signupValidator;

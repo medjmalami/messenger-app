@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { config } from "dotenv";
 import SignRoutes from "./routes/sign.routes";
+import TokenRoutes from "./routes/token.routes";
 
 
 config();
@@ -15,6 +16,7 @@ app.get("/", (req , res) => {
 });
 
 app.use("/", SignRoutes);
+app.use("/", TokenRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

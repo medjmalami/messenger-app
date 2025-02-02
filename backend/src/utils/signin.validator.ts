@@ -1,7 +1,7 @@
 const {validator }= require('validator');
 import { SigninReq } from "../../../shared/signin.types";
 import { Errors } from "../../../shared/signin.types";
-const signupValidator = (data : SigninReq) => {
+export const signinValidator = (data : SigninReq) => {
 
 
     const { email, password } = data;
@@ -22,5 +22,3 @@ const signupValidator = (data : SigninReq) => {
 
     
 }
-
-export default signupValidator;

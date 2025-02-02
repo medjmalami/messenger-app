@@ -3,16 +3,17 @@ import { users } from "../../db/schema";
 import { db } from "../../db/index";
 import jwt from "jsonwebtoken";
 import { SignupReq } from "../../../../shared/signup.types"
-const {signupValidator} = require('../utils/signup.validator')
 import { Errors } from "../../../../shared/signup.types";
 import { sql } from "drizzle-orm";
 import { refreshTokens } from "../../db/schema";
 import { hashPassword } from "../../utils/hash_password";
-
+import { SignupRes } from "../../../../shared/signup.types";
+import { signupValidator } from "../../utils/signup.validator";
 
 // Helper function for error handling
 const handleError = (res: Response, status: number, message: string) => {
-  return res.status(status).json({ success: false, error: message });
+   res.status(status).json({ success: false, error: message });
+
 };
 
 
@@ -30,13 +31,15 @@ const signup = async (req: Request, res: Response) => {
     // Validate required fields
     const errors : Errors = signupValidator(r);
     if (Object.keys(errors).length > 0) {
-      return handleError(res, 400, "Invalid request body");
+       handleError(res, 400, "Invalid request body");
+       return
     }
 
     // Check if user already exists
     let [user] = await db.select().from(users).where(sql`username = ${username} OR email = ${email}`).limit(1);
     if (user) {
-      return handleError(res, 409, "Username or email already exists");
+       handleError(res, 409, "Username or email already exists");
+       return
     }
 
 
@@ -68,28 +71,31 @@ const signup = async (req: Request, res: Response) => {
     await db.insert(refreshTokens).values({
       token : refreshToken,
     });
-    
 
-    return res.status(201).json({
+    const re : SignupRes = {
       success: true,
       data: {
-        id: user.id,
         username: user.username,
         email: user.email,
         accessToken,
         refreshToken
       }
-    });
+    }
+
+    res.status(201).json(re);
+    
 
   } catch (error: any) {
+    console.log(error);
     // Handle unique constraint violations
     if (error.code === '23505') {
-      return handleError(res, 409, "Username or email already exists");
+      handleError(res, 409, "Username or email already exists");
+      return
     }
-    return handleError(res, 500, "Server error");
+
+    handleError(res, 500, "Server error");
+    return
   }
 };
 
-module.exports = {
-  signup,
-}
+export default signup;
