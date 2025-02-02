@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import {z } from '../backend/node_modules/zod';
 
 export const SigninReqSchema = z.object({
     email: z.string().email(),

@@ -1,4 +1,4 @@
- import { z } from 'zod';
+import {z } from '../backend/node_modules/zod';
 
 export const SignupReqSchema = z.object({
     username: z.string(),
