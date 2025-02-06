@@ -100,13 +100,13 @@ const MessengerApp = () => {
   const LeftNav = () => (
     <div className="w-80 border-r h-full flex flex-col">
       <div className="p-4 border-b">
-        <Input
-          placeholder="Search friends or messages..."
-          className="w-full"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          prefix={<Search className="h-4 w-4 text-gray-500" />}
-        />
+      <Search className="h-4 w-4 text-gray-500 mr-2" />
+      <Input
+        placeholder="Search friends or messages..."
+        className="w-full"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+      />
       </div>
       
       <Tabs defaultValue="chats" className="flex-1">
