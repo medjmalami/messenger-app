@@ -14,6 +14,33 @@ const SignInPage = () => {
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:5000/signin', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await response.json();
+      if (data.error) {
+        setError(data.error);
+      } else {
+        localStorage.setItem('accessToken', data.data.accessToken);
+        localStorage.setItem('refreshToken', data.data.refreshToken);
+        localStorage.setItem('email', data.data.email);
+        localStorage.setItem('username', data.data.username);
+        navigate('/chat', { replace: true });
+      }
+    } catch (error) {
+      console.error(error);
+      setError('Something went wrong. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+    
     
   };
 

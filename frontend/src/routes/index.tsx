@@ -6,8 +6,7 @@ import FriendsPage from '../pages/FriendsPage';
 import RequestsPage from '../pages/RequestsPage';
 
 const isAuthenticated = () => {
-  //return localStorage.getItem('token') !== null;
-  return true;
+  return localStorage.getItem('accessToken') !== null;
 };
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {

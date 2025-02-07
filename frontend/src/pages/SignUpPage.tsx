@@ -7,15 +7,40 @@ import { Card } from '@/components/ui/card';
 const SignUpPage = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    fullName: '',
+    username: '',
     email: '',
     password: '',
-    confirmPassword: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:5000/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await response.json();
+      if (data.error) {
+        setError(data.error);
+      } else {
+        localStorage.setItem('accessToken', data.data.accessToken);
+        localStorage.setItem('refreshToken', data.data.refreshToken);
+        localStorage.setItem('email', data.data.email);
+        localStorage.setItem('username', data.data.username);
+        navigate('/chat', { replace: true });
+      }
+    } catch (error) {
+      console.error(error);
+      setError('Something went wrong. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
     
   };
 
@@ -25,11 +50,11 @@ const SignUpPage = () => {
         <h2 className="text-2xl font-bold text-center">Create Account</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
-            name="fullName"
-            placeholder="Full Name"
+            name="Username"
+            placeholder="Username"
             type="text"
-            value={formData.fullName}
-            onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+            value={formData.username}
+            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
             required
           />
           <Input
@@ -48,14 +73,7 @@ const SignUpPage = () => {
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             required
           />
-          <Input
-            name="confirmPassword"
-            placeholder="Confirm Password"
-            type="password"
-            value={formData.confirmPassword}
-            onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-            required
-          />
+
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Creating account...' : 'Sign Up'}
