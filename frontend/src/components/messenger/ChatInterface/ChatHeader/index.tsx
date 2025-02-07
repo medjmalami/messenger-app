@@ -9,7 +9,6 @@ interface ChatHeaderProps {
   isInCall: boolean;
   setIsInCall: (inCall: boolean) => void;
   toggleTheme: () => void;
-  setIsLoggedIn: (logged: boolean) => void;
 }
 
 const ChatHeader = ({
@@ -18,7 +17,6 @@ const ChatHeader = ({
   isInCall,
   setIsInCall,
   toggleTheme,
-  setIsLoggedIn
 }: ChatHeaderProps) => (
   <div className="flex justify-between items-center p-4 border-b">
     <div className="flex items-center gap-2">
@@ -55,7 +53,6 @@ const ChatHeader = ({
       <Button 
         variant="ghost" 
         size="icon"
-        onClick={() => setIsLoggedIn(false)}
       >
         <LogOut />
       </Button>

@@ -10,7 +10,6 @@ interface ChatInterfaceProps {
   isInCall: boolean;
   setIsInCall: (inCall: boolean) => void;
   toggleTheme: () => void;
-  setIsLoggedIn: (logged: boolean) => void;
 }
 
 const ChatInterface = ({
@@ -20,7 +19,6 @@ const ChatInterface = ({
   isInCall,
   setIsInCall,
   toggleTheme,
-  setIsLoggedIn
 }: ChatInterfaceProps) => (
   <div className="flex-1 flex flex-col">
     <ChatHeader 
@@ -29,7 +27,6 @@ const ChatInterface = ({
       isInCall={isInCall}
       setIsInCall={setIsInCall}
       toggleTheme={toggleTheme}
-      setIsLoggedIn={setIsLoggedIn}
     />
     <MessageList messages={messages} />
     <MessageInput />
