@@ -11,6 +11,30 @@ interface ChatHeaderProps {
   toggleTheme: () => void;
 }
 
+const handleLogOut = () => {
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  window.location.href = '/signin';
+
+
+  //send request to server to log out user
+  //navigate to login page
+  try {
+    fetch('http://localhost:5000/logout', {
+      method: 'POST',
+      headers: new Headers({
+        'Content-Type': 'application/json',
+        authorization: localStorage.getItem('refreshToken') ?? '',
+      }),
+      body: localStorage.getItem('refreshToken') ? JSON.stringify({ token: localStorage.getItem('refreshToken') }) : null,
+    });
+  }catch (error) {
+    console.error(error);
+  }
+
+
+};
+
 const ChatHeader = ({
   activeChat,
   isDark,
@@ -53,6 +77,7 @@ const ChatHeader = ({
       <Button 
         variant="ghost" 
         size="icon"
+        onClick={handleLogOut}
       >
         <LogOut />
       </Button>
