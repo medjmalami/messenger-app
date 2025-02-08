@@ -11,7 +11,7 @@ interface ChatHeaderProps {
   toggleTheme: () => void;
 }
 
-const handleLogOut = () => {
+const handleLogOut = async() => {
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
   window.location.href = '/signin';
@@ -20,7 +20,7 @@ const handleLogOut = () => {
   //send request to server to log out user
   //navigate to login page
   try {
-    fetch('http://localhost:5000/logout', {
+    await fetch('http://localhost:5000/logout', {
       method: 'POST',
       headers: new Headers({
         'Content-Type': 'application/json',
