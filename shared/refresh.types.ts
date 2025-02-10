@@ -2,7 +2,6 @@ import {z } from '../backend/node_modules/zod';
 
 export const RefreshReqSchema = z.object({
   refreshToken : z.string(),
-  email : z.string().email(),
 });
 
 export const RefreshResSchema = z.object({
