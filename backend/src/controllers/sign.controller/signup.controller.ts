@@ -86,6 +86,7 @@ const signup = async (req: Request, res: Response) => {
     }
 
     res.status(201).json(re);
+    return;
     
 
   } catch (error: any) {

@@ -2,87 +2,90 @@ import { Request, Response } from "express";
 import { refreshTokens, users } from "../../db/schema";
 import { db } from "../../db/index";
 import jwt from "jsonwebtoken";
-import { sql } from "drizzle-orm";
-import { RefreshReq } from "../../../../shared/refresh.types"
+import { eq } from "drizzle-orm";
 import { RefreshRes } from "../../../../shared/refresh.types";
 import { RefreshReqSchema } from "../../../../shared/refresh.types";
 
-// Helper function for error handling
 const handleError = (res: Response, status: number, message: string) => {
-   res.status(status).json({ success: false, error: message });
+    res.status(status).json({ success: false, error: message });
 };
-
 
 export const refresh = async (req: Request, res: Response) => {
-  const {  email } = req.body;
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    return handleError(res, 401, "Missing Authorization header");
-  }
-  const refreshToken = authHeader.split(" ")[1];
-
-  const r : RefreshReq = {
-    refreshToken,
-    email,
-  }
-
-  try {
-
-    // Validate required fields
-    const validated = RefreshReqSchema.safeParse(r);
-    if (!validated.success) {
-      console.log(validated.error);
-      return handleError(res, 400, "Invalid request body");
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        handleError(res, 401, "Missing Authorization header");
+        return;
     }
+    const refreshToken = authHeader.split(" ")[1];
 
+    try {
+        // Validate the request body (though email is no longer needed)
+        const validated = RefreshReqSchema.safeParse({ refreshToken });
+        if (!validated.success) {
+            handleError(res, 400, "Invalid request ");
+            return;
+        }
 
-    // Check if refresh token exists
-    let [token] = await db.select().from(refreshTokens).where(sql`token = ${refreshToken}`).limit(1);
-    if (!token) {
-       handleError(res, 401, "Invalid refresh token");
+        // Verify the refresh token's validity (signature and expiration)
+        let decoded: jwt.JwtPayload;
+        try {
+            decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!) as jwt.JwtPayload;
+        } catch (error) {
+            // Handle invalid/expired token
+            handleError(res, 401, "Invalid or expired refresh token");
+            return;
+        }
+
+        // Check if the token exists in the database
+        const [token] = await db.select()
+            .from(refreshTokens)
+            .where(eq(refreshTokens.token, refreshToken))
+            .limit(1);
+        if (!token) {
+            handleError(res, 401, "Refresh token revoked");
+            return;
+        }
+
+        // Extract userId from the token and find the user
+        const userId = decoded.userId;
+        const [user] = await db.select()
+            .from(users)
+            .where(eq(users.id, userId))
+            .limit(1);
+        if (!user) {
+            handleError(res, 404, "User not found");
+            return;
+        }
+
+        // Generate new tokens
+        const accessToken = jwt.sign(
+            { userId: user.id },
+            process.env.ACCESS_TOKEN_SECRET!,
+            { expiresIn: '1h' }
+        );
+        const newRefreshToken = jwt.sign(
+            { userId: user.id },
+            process.env.REFRESH_TOKEN_SECRET!,
+            { expiresIn: '7d' }
+        );
+
+        // Update the refresh token in the database
+        await db.update(refreshTokens)
+            .set({ token: newRefreshToken })
+            .where(eq(refreshTokens.token, refreshToken));
+
+        const response: RefreshRes = {
+            success: true,
+            data: {
+                accessToken,
+                refreshToken: newRefreshToken
+            }
+        };
+
+        res.status(200).json(response);
+        return
+    } catch (error: any) {
+        console.error("Refresh error:", error);
+        handleError(res, 500, "Server error");
     }
-
-    // Check if refresh token is valid
-    const refreshTokenValid = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!);
-    if (!refreshTokenValid) {
-       handleError(res, 401, "Invalid refresh token");
-    }
-
-    let [user]= await db.select().from(users).where(sql`email = ${email}`).limit(1);
-
-    // Generate new access token
-    const accessToken = jwt.sign(
-      { userId: user.id },
-      process.env.ACCESS_TOKEN_SECRET!,
-      { expiresIn: '1h' }
-    );
-
-    const updateRefreshToken = jwt.sign(
-      { userId: user.id },
-      process.env.REFRESH_TOKEN_SECRET!,
-      { expiresIn: '7d' }
-    );
-
-    await db.update(refreshTokens).set({
-      token : updateRefreshToken,
-    }).where(sql`token = ${refreshToken}`);
-
-    const re : RefreshRes = {
-      success: true,
-      data: {
-        accessToken,
-        refreshToken: updateRefreshToken
-      }
-    }
-
-   res.status(200).json(re);
-
-  } catch (error: any) {
-    // Handle unique constraint violations
-    if (error.code === '23505') {
-      handleError(res, 409, "Username or email already exists");
-    }
-      handleError(res, 500, "Server error");
-  }
 };
-

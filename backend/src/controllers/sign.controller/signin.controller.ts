@@ -39,12 +39,14 @@ const signin = async (req: Request, res: Response) => {
     let [user] = await db.select().from(users).where(sql`email = ${email}`).limit(1);
     if (!user) {
       handleError(res, 404, "User not found");
+      return;
     }
 
     // Check if password matches
     const passwordMatch = await bcrypt.compare(password, user.passwordHash);
     if (!passwordMatch) {
       handleError(res, 401, "Incorrect password");
+      return;
     }
 
     // Generate JWT token
@@ -74,13 +76,16 @@ const signin = async (req: Request, res: Response) => {
       }
     }
     res.status(201).json(re);
+    return;
 
   } catch (error: any) {
     // Handle unique constraint violations
     if (error.code === '23505') {
        handleError(res, 409, "Username or email already exists");
+       return;
     }
     handleError(res, 500, "Server error");
+    return;
   }
 };
 

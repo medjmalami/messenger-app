@@ -21,7 +21,8 @@ const logout = async (req: Request, res: Response) => {
     const authHeader = req.headers.authorization;
     
     if (!authHeader) {
-        return handleError(res, 401, "Missing Authorization header");
+        handleError(res, 401, "Missing Authorization header");
+        return;
     }
     
     const refreshToken = authHeader.split(" ")[1];
@@ -35,15 +36,18 @@ const logout = async (req: Request, res: Response) => {
             .limit(1);
             
         if (!token) {
-            return handleError(res, 401, "Refresh token not found");
+             handleError(res, 401, "Refresh token not found");
+             return;
         }
         
         // Check if refresh token is valid
         const refreshTokenValid = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!) as JWTPayload;
         
         if (!refreshTokenValid) {
-            return handleError(res, 401, "Invalid refresh token");
+            handleError(res, 401, "Invalid refresh token");
+            return;
         }
+
         
         // Get user ID from email
         const [user] = await db
@@ -53,12 +57,14 @@ const logout = async (req: Request, res: Response) => {
             .limit(1);
             
         if (!user) {
-            return handleError(res, 404, "User not found");
+             handleError(res, 404, "User not found");
+             return;
         }
         
         // Check if token belongs to user
         if (refreshTokenValid.id !== user.id) {
-            return handleError(res, 401, "Refresh token does not belong to the user");
+            handleError(res, 401, "Refresh token does not belong to the user");
+            return;
         }
         
         // Delete refresh token
@@ -67,9 +73,11 @@ const logout = async (req: Request, res: Response) => {
             .where(sql`token = ${refreshToken}`);
             
         res.status(200).json({ success: true, data: {} });
+        return
     } catch (error) {
         console.error('Logout error:', error);
-        return handleError(res, 500, "Server error");
+        handleError(res, 500, "Server error");
+        return  
     }
 };
 
