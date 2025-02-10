@@ -14,6 +14,8 @@ interface ChatHeaderProps {
 const handleLogOut = async() => {
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
+  localStorage.removeItem('email');
+  localStorage.removeItem('username');
   window.location.href = '/signin';
 
 

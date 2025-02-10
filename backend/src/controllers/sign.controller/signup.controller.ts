@@ -42,6 +42,7 @@ const signup = async (req: Request, res: Response) => {
     let [user] = await db.select().from(users).where(sql`username = ${username} OR email = ${email}`).limit(1);
     if (user) {
        handleError(res, 409, "Username or email already exists");
+       return
     }
 
 
@@ -92,9 +93,11 @@ const signup = async (req: Request, res: Response) => {
     // Handle unique constraint violations
     if (error.code === '23505') {
       handleError(res, 409, "Username or email already exists");
+      return
     }
 
     handleError(res, 500, "Server error");
+    return
   }
 };
 
