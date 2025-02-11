@@ -4,6 +4,7 @@ import { config } from "dotenv";
 import SignRoutes from "./routes/sign.routes";
 import TokenRoutes from "./routes/token.routes";
 import PassRoutes from "./routes/pass.routes";
+import FriendsRoutes from "./routes/user.routes/friends.user.routes";
 const morgan = require('morgan');
 
 config();
@@ -23,6 +24,7 @@ app.get("/", (req , res) => {
 app.use("/", SignRoutes);
 app.use("/", TokenRoutes);
 app.use("/", PassRoutes);
+app.use("/", FriendsRoutes);
 
 
 const PORT = process.env.PORT || 5000;
