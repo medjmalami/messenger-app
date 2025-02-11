@@ -4,6 +4,8 @@ import SignUpPage from '../pages/SignUpPage';
 import ChatPage from '../pages/ChatPage';
 import FriendsPage from '../pages/FriendsPage';
 import RequestsPage from '../pages/RequestsPage';
+import ForgotPasswordPage from '../pages/ForgotPassPage';
+import ResetPasswordPage from '../pages/ResetPassPage';
 
 const isAuthenticated = () => {
   return localStorage.getItem('accessToken') !== null;
@@ -24,6 +26,14 @@ export const router = createBrowserRouter([
   {
     path: '/signup',
     element: <SignUpPage />,
+  },
+  {
+    path: '/forgot-password',
+    element: <ForgotPasswordPage />,
+  },
+  {
+    path: '/reset-password/:token',
+    element: <ResetPasswordPage />,
   },
   {
     path: '/chat',
